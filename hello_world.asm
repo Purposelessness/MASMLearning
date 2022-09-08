@@ -1,7 +1,7 @@
 assume ss:my_stack, cs:my_code
 
-my_stack segment
-    stack dw 12 dup('?')
+my_stack segment stack 
+    dw 12 dup('?')
 my_stack ends
 
 my_data segment
