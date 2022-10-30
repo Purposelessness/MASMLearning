@@ -1,4 +1,4 @@
-assume ss:my_stack, cs:my_code
+assume ss:my_stack, cs:my_code, ds:my_data
 
 my_stack segment stack 
     dw 12 dup('?')
