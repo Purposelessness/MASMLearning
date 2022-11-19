@@ -130,44 +130,7 @@ int main() {
       : [out] "b"(out), [in] "d"(str), [translit] "r"(translit)
       : "rsi", "rdi", "rcx", "rax"); // Clobber list
 
-  // asm("xor  rsi, rsi                 \n"
-  //     "process_str:                  \n"
-  //     "  cmp  rsi, 80                \n"
-  //     "  jg   exit                   \n"
-  //     "  mov  ax, [%[in] + rsi]      \n"
-  //     "  cmp  ax, '\\0'              \n"
-  //     "  je   exit                   \n"
-  //     "  mov  [%[out] + rsi], ax     \n"
-  //     "  add  rsi, 2                 \n"
-  //     "  jmp  process_str            \n"
-  //     "exit:                         \n"
-  //     "  mov dword ptr [%[out] + rsi], '\\0'  \n"
-  //     :
-  //     : [out] "b"(out), [in] "d"(str));
-
   wprintf(L"%ls", out);
-
-  // wchar_t check = 0;
-  // wchar_t symb = L'щ';
-
-  // wprintf(L"%d", symb);
-  // u_int64_t check = 0;
-
-  // asm("xor  rax, rax          \n"
-  //     "mov  eax, 'ё'          \n"
-  //     "mov  eax, %[symb]          \n"
-  //     "sub  eax, 1072          \n"
-  //     "xor  rdi, rdi          \n"
-  //     "mov  edi, eax            \n"
-  //     "shl  edi, 3               \n"
-  //     // "mov  %[check], rdi        \n"
-  //     "mov  eax, [%[trans] + rdi] \n"
-  //     "mov  %[check], eax \n"
-  //     : [check] "=r"(check)
-  //     : [symb] "r"(symb), [trans] "r"(translit)
-  //     : "rax", "rdi");
-
-  // wprintf(L"???%d ??", check);
 
   return 0;
 }
