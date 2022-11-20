@@ -46,25 +46,20 @@ int main() {
 
   fgetws(str, N, stdin);
 
-  // wchar_t c;
-  // for (int i = 0; i < N; ++i) {
-  //   c = str[i];
-  //   if (c == L'\0') {
-  //     break;
-  //   }
-  //   wprintf(L"%d ", c);
-  // }
-
-  asm("xor  rsi, rsi             \n\t" // rsi = 0 --> `in`
-      "xor  rdi, rdi             \n" // rdi = 0 --> `out`
-      "process_str:              \n" // Loop of string processing
-      "  cmp  rsi, 316           \n" // Check if in array bounds
-      "  jg   end_process        \n" // If not --> goto exit (loop ends)
+  asm("process_str:              \n" // Loop of string processing
       "  xor  rax, rax           \n"
-      "  mov  eax, [%[in] + rsi] \n" // Get letter from input string
-      "  add  rsi, 4             \n"
+      "  lodsd                   \n"
       "  cmp  eax, 0             \n" // Check if input string ends
       "  je   end_process        \n"
+
+      "  cmp  eax, 1105          \n" // ё
+      "  je   e_lower            \n"
+      "  cmp  eax, 1025          \n" // Ё
+      "  je   e_upper            \n"
+      "  cmp  eax, 1097          \n" // щ
+      "  je   chsh_lower         \n"
+      "  cmp  eax, 1065          \n" // Щ
+      "  je   chsh_upper         \n"
 
       "ru_lower_check:           \n" // Check if letter is ru and in lower case
       "  cmp  eax, 1072          \n" // 'а'
@@ -80,28 +75,55 @@ int main() {
       "  jg   write_ch           \n"
       "  jmp  transliterate_uppercase \n" // If true --> goto transliteration (UPPER)
 
-      "write_ch:                  \n" // Write letter to outer string
-      "  mov  [%[out] + rdi], eax \n"
-      "  add  rdi, 4              \n"
-      "  jmp  process_str         \n" // Continue loop
+      "write_ch:                 \n" // Write letter to outer string
+      "  stosd                   \n"
+      "  jmp  process_str        \n" // Continue loop
+
+      "e_lower:                  \n"
+      "  mov  eax, 101           \n"
+      "  jmp  write_ch           \n"
+
+      "e_upper:                  \n"
+      "  mov  eax, 69            \n"
+      "  jmp  write_ch           \n"
+
+      "chsh_lower:               \n"
+      "  mov  eax, 115           \n"
+      "  stosd                   \n"
+      "  mov  eax, 104           \n"
+      "  stosd                   \n"
+      "  mov  eax, 99            \n"
+      "  stosd                   \n"
+      "  mov  eax, 104           \n"
+      "  stosd                   \n"
+      "  jmp  process_str        \n"
+
+      "chsh_upper:               \n"
+      "  mov  eax, 83            \n"
+      "  stosd                   \n"
+      "  mov  eax, 104           \n"
+      "  stosd                   \n"
+      "  mov  eax, 99            \n"
+      "  stosd                   \n"
+      "  mov  eax, 104           \n"
+      "  stosd                   \n"
+      "  jmp  process_str        \n"
 
       "transliterate_uppercase:  \n"
       "  sub  eax, 1040          \n" // Find index of letter in ru alphabet
       "  xor  rcx, rcx           \n"
       "  mov  ecx, eax           \n"
-      "  shl  ecx, 3             \n"
+      "  shl  ecx, 3             \n" // Multyply index by 2 plus size of wchar_t (4)
       "  mov  eax, [%[translit] + rcx]    \n" // Get letter from 'dictionary'
       "  cmp  eax, 0             \n" // Check if letter exists
       "  je   trans_upper_exit   \n" // If not --> goto exit
       "  sub  eax, 32            \n" // Make letter UPPER case
-      "  mov  [%[out] + rdi], eax \n" // Write letter to outer string
-      "  add  rdi, 4             \n"
+      "  stosd                   \n"
       "  add  rcx, 4             \n"
       "  mov  eax, [%[translit] + rcx]    \n" // Write second char of transliteration
       "  cmp  eax, 0             \n" // Check if it exists
       "  je   trans_upper_exit   \n" // If not --> goto exit
-      "  mov  [%[out] + rdi], eax\n" // Else write letter to outer string
-      "  add  rdi, 4             \n"
+      "  stosd                   \n"
       "trans_upper_exit:         \n" // Exit of transliteration
       "  jmp  process_str        \n" // Continue loop
 
@@ -113,22 +135,21 @@ int main() {
       "  mov  eax, [%[translit] + rcx]   \n"
       "  cmp  eax, 0             \n"
       "  je   trans_lower_exit   \n"
-      "  mov  [%[out] + rdi], eax\n"
-      "  add  rdi, 4             \n"
+      "  stosd                   \n"
       "  add  rcx, 4             \n"
       "  mov  eax, [%[translit] + rcx]    \n"
       "  cmp  eax, 0             \n"
       "  je   trans_lower_exit   \n"
-      "  mov  [%[out] + rdi], eax\n"
-      "  add  rdi, 4             \n"
+      "  stosd                   \n"
       "trans_lower_exit:         \n"
       "  jmp  process_str        \n"
 
       "end_process:              \n"
-      "  mov dword ptr [%[out] + rdi], 0 \n"
+      "  mov  eax, 0             \n"
+      "  stosd                   \n"
       : // Output parameters
-      : [out] "b"(out), [in] "d"(str), [translit] "r"(translit)
-      : "rsi", "rdi", "rcx", "rax"); // Clobber list
+      : [out] "D"(out), [in] "S"(str), [translit] "r"(translit) // Input parameters
+      : "rcx", "rax"); // Clobber list
 
   wprintf(L"%ls", out);
 

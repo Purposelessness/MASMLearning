@@ -12,13 +12,9 @@ int main() {
 
   fgetws(in, N, stdin);
 
-  asm("xor rsi, rsi                 \n"
-
-      "process_str:                 \n"
-      "  cmp  rsi, 316              \n"
-      "  jg   end_process           \n"
+  asm("process_str:                 \n"
       "  xor  rax, rax              \n"
-      "  mov  eax, [%[in] + rsi]    \n"
+      "  lodsd                      \n"
       "  cmp  eax, 0                \n"
       "  je   end_process           \n"
 
@@ -42,15 +38,15 @@ int main() {
       "  jmp  write_ch              \n"
 
       "write_ch:                    \n"
-      "  mov  [%[out] + rsi], eax   \n"
-      "  add  rsi, 4                \n"
+      "  stosd                      \n"
       "  jmp  process_str           \n"
 
       "end_process:                 \n"
-      "  mov dword ptr [%[out] + rsi], 0 \n"
+      "  mov  eax, 0                \n"
+      "  stosd                      \n"
       :
-      : [in] "r"(in), [out] "r"(out)
-      : "rsi", "rax");
+      : [in] "S"(in), [out] "D"(out)
+      : "rax");
 
   wprintf(L"%ls", out);
 
