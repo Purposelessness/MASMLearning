@@ -6,11 +6,11 @@ my_stack ends
 
 my_data segment
   int_segment dw 0
-  int_offset dw 0
+  int_offset  dw 0
 
-  msg db 'Some message', 0ah, 0dh, '$'
+  msg     db 'Some message', 0ah, 0dh, '$'
   int_msg db 'Interruption is done', 0ah, 0dh, '$'
-  flag db 0
+  flag    db 0
 my_data ends
 
 my_code segment
@@ -95,9 +95,9 @@ main proc far
 
   mov  ah, 25h
   mov  al, 08h
-  int 21h
+  int  21h
 
-  pop ds
+  pop  ds
 
 ; Wait 1 second
   xor  ax, ax
