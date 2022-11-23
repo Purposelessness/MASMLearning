@@ -7,7 +7,8 @@
 
 int main() {
   setlocale(LC_CTYPE, "");
-
+  int k = 0;
+  wchar_t *mas = L"AEIOUYaeiouyАаЁёУуЕеУуЭэОоЫыЯяИиЮю";
   wchar_t *translit = L"a\0" // А
                       L"b\0" // Б
                       L"v\0" // В
@@ -46,9 +47,23 @@ int main() {
 
   fgetws(str, N, stdin);
 
-  asm("process_str:              \n" // Loop of string processing
+  asm("xor  %[k], %[k]           \n" // set `k = 0`
+      "process_str:              \n" // Loop of string processing
       "  xor  rax, rax           \n"
       "  lodsd                   \n"
+      ////
+      "  push rdi                \n" // Save `out` string address
+      "  xor  rcx, rcx           \n"
+      "  mov  rdi, %[mas]        \n" // Load `mas` in rdi to iterate over it
+      "  mov  cx, 35             \n" // `mas` length is 34 + 1
+      "  repne scasd             \n" // Try to match a read symbol with symbol in `mas`
+      "  pop  rdi                \n" // Load `out` string address
+      "  cmp  cx, 0              \n" // Check if no matches with symbols in `mas`
+      "  jz   continue           \n"
+      "  inc  %[k]               \n" // ++k if vowel
+      "continue:                 \n"
+      ////
+
       "  cmp  eax, 0             \n" // Check if input string ends
       "  je   end_process        \n"
 
@@ -147,11 +162,11 @@ int main() {
       "end_process:              \n"
       "  mov  eax, 0             \n"
       "  stosd                   \n"
-      : // Output parameters
-      : [out] "D"(out), [in] "S"(str), [translit] "r"(translit) // Input parameters
+      : [k] "=r" (k)// Output parameters
+      : [out] "D"(out), [in] "S"(str), [translit] "r"(translit), [mas] "r"(mas) // Input parameters
       : "rcx", "rax"); // Clobber list
 
   wprintf(L"%ls", out);
-
+  wprintf(L"%d\n", k);
   return 0;
 }
