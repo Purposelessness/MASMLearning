@@ -23,6 +23,7 @@ find_interval_index_end:
   pop  rdi
   ret
 
+#; Input:
 #; rdi --> int *result_array  (qword)
 #; rsi --> int *source_array  (qword)
 #; rdx --> int *borders_array (qword)
@@ -39,7 +40,12 @@ process_data_loop:
   call find_interval_index
   pop  rcx
 
+  test rax, rax
+  jz   continue_loop
+
   inc dword ptr [rdi + rax * 4 - 4]
+
+continue_loop:
   loop process_data_loop
 
   pop  rax
