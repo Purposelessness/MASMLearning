@@ -11,9 +11,74 @@ my_data segment
   msg     db 'Some message', 0ah, 0dh, '$'
   int_msg db 'Interruption is done', 0ah, 0dh, '$'
   flag    db 0
+  delim   db ':'
 my_data ends
 
 my_code segment
+
+display_time proc near
+  push ax
+  push cx
+
+  mov  cl, 4
+
+; Print hours
+  mov  al, 04h
+  out  70h, al
+  in   al, 71h
+  push ax
+  shr  al, cl
+  add  al, '0'
+  int  29h
+  pop  ax
+  and  al, 00001111b
+  add  al, '0'
+  int  29h
+
+; Print delim
+  mov  al, delim
+  int  29h
+
+; Print minutes
+  mov  al, 02h
+  out  70h, al
+  in   al, 71h
+  push ax
+  shr  al, cl
+  add  al, '0'
+  int  29h
+  pop  ax
+  and  al, 00001111b
+  add  al, '0'
+  int  29h
+
+; Print delim
+  mov  al, delim
+  int  29h
+
+; Print seconds
+  mov  al, 00h
+  out  70h, al
+  in   al, 71h
+  push ax
+  shr  al, cl
+  add  al, '0'
+  int  29h
+  pop  ax
+  and  al, 00001111b
+  add  al, '0'
+  int  29h
+
+; Print new line
+  mov  al, 0ah
+  int  29h
+  mov  al, 0dh
+  int  29h
+
+  pop  cx
+  pop  ax
+  ret
+display_time endp
 
 display_message proc near ; print message from `dx` register
   push ax
@@ -38,10 +103,9 @@ my_int_proc proc far
 ; Print messages
   xor  cx, cx
   mov  cx, 5
-  mov  dx, offset msg
 
 print_msg_loop:
-  call display_message
+  call display_time
   loop print_msg_loop
 
 ; Wait...
@@ -57,8 +121,7 @@ wait_loop:
   loop update_dx
 
 ; Print `end` message
-  mov  dx, offset int_msg
-  call display_message
+  call display_time
 
   pop  ax
   pop  dx
