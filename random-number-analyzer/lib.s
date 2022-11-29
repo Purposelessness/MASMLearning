@@ -4,6 +4,7 @@
 #; rdx --> int *borders_array
 #; rcx --> int borders_number
 #; rax --> int number
+#; r9  --> int *max_numbers
 #; Output:
 #; rax --> int interval_index + 1
 #; rax = 0 --> not in interval
@@ -15,6 +16,12 @@ find_interval_index_loop:
   loop find_interval_index_loop
 
 find_interval_index_end:
+#; Check max number
+  cmp  eax, [r9 + rcx * 4 - 4]
+  jle  less_or_equal
+  mov dword ptr [r9 + rcx * 4 - 4], eax
+
+less_or_equal:
   mov  rax, rcx
 
   ret
@@ -25,6 +32,7 @@ find_interval_index_end:
 #; rdx --> int *borders_array (qword)
 #; rcx --> int count          (dword)
 #; r8  --> int borders_number (dword)
+#; r9  --> int *max_numbers   (qword)
 process_data:
   push rax
 
