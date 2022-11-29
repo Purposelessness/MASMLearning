@@ -1,9 +1,11 @@
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 extern void process_data(int *result_array, int *source_array,
-                         int *borders_array, int number, int borders_number);
+                         int *borders_array, int number, int borders_number,
+                         int *max_numbers);
 
 int main() {
   srand(time(NULL));
@@ -49,7 +51,11 @@ int main() {
   }
 
   int *res_arr = calloc(n_int, sizeof(int));
-  process_data(res_arr, n_arr, int_arr, n, n_int);
+  int *max_numbers = malloc(n_int * sizeof(int));
+  for (int i = 0; i < n_int; ++i) {
+    max_numbers[i] = INT_MIN;
+  }
+  process_data(res_arr, n_arr, int_arr, n, n_int, max_numbers);
 
   FILE *f = fopen("results.txt", "w");
   if (!f) {
@@ -64,7 +70,8 @@ int main() {
   fputs("\n\n", f);
   fputs("Results:\n", f);
   for (int i = 0; i < n_int; ++i) {
-    fprintf(f, "%d   %d   %d\n", i + 1, int_arr[i], res_arr[i]);
+    fprintf(f, "%d   %d   %d   %d\n", i + 1, int_arr[i], res_arr[i],
+            max_numbers[i]);
   }
 
   fclose(f);
@@ -76,5 +83,6 @@ error_free_result:
 error_free_sources:
   free(n_arr);
   free(int_arr);
+  free(max_numbers);
   return 1;
 };
