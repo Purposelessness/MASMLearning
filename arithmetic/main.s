@@ -1,7 +1,4 @@
 .section .rodata
-  hello_str:
-    .string "Hello world!\n"
-    .set hello_str_len, . - hello_str - 1
   newline_str:
     .string "\n"
 
@@ -14,8 +11,9 @@
   number_str:
     .space 11  #; first symbol is 8 if num < 0
     .set number_str_len, 11
-  buf:
-    .space 1
+  dx_ax_str:
+    .space 40
+    .set dx_ax_str_len, 40
 
 .section .text
 
@@ -134,6 +132,86 @@ neg_number:
 
   ret
 
+#; rdi -- string to write
+display_dx_ax:
+  push rdi
+  push rsi
+  push rax
+  push rdx
+  push rcx
+
+  xor  rcx, rcx
+
+  mov  rdi, offset dx_ax_str
+
+  mov  cx, 4
+display_dx_ax_proceed_dx_space:
+  push cx
+  mov  cx, 4
+display_dx_ax_proceed_dx:
+  rcl  dx, 1
+  jc   proceed_dx_one
+
+  mov  ax, '0'
+  jmp  proceed_dx_next
+
+proceed_dx_one:
+  mov  ax, '1'
+
+proceed_dx_next:
+  stosb
+  loop display_dx_ax_proceed_dx
+
+  pop  cx
+  mov  ax, ' '
+  stosb
+
+  loop display_dx_ax_proceed_dx_space
+
+  mov  dx, ax
+  mov  cx, 4
+display_dx_ax_proceed_ax_space:
+  push cx
+  mov  cx, 4
+display_dx_ax_proceed_ax:
+  rcl  dx, 1
+  jc   proceed_ax_one
+
+  mov  ax, '0'
+  jmp  proceed_ax_next
+
+proceed_ax_one:
+  mov  ax, '1'
+
+proceed_ax_next:
+  stosb
+  loop display_dx_ax_proceed_ax
+
+  pop  cx
+  mov  ax, ' '
+  stosb
+
+  loop display_dx_ax_proceed_ax_space
+
+  mov  rax, 1
+  mov  rdi, 1
+  mov  rsi, offset dx_ax_str
+  mov  rdx, dx_ax_str_len
+  syscall
+
+  mov  rax, 1
+  mov  rdi, 1
+  mov  rsi, offset newline_str
+  mov  rdx, 1
+  syscall
+
+  pop  rcx
+  pop  rdx
+  pop  rax
+  pop  rsi
+  pop  rdi
+  ret
+
 .global  _start
 _start:
 #; Insert number
@@ -141,6 +219,9 @@ _start:
 
   mov  ax, dx
   shr  edx, 16
+
+#; Display dx:ax registers
+  call display_dx_ax
 
   rcl  dx, 1
   jnc  positive
@@ -168,8 +249,12 @@ make_number_str:
   mov  rdx, 1
   syscall
 
+#; Get value from str to dx:ax
   mov  rsi, offset number_str
   call get_number
+
+#; Display dx:ax registers
+  call display_dx_ax
 
 #; Exit
   mov  rax, 60
