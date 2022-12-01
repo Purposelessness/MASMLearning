@@ -87,7 +87,7 @@ get_number:
   xor  rbx, rbx
   xor  rcx, rcx
 
-  mov  cx, 5
+  mov  cx, 4
 proceed_digit_dx:
   lodsb
   sub  ax, '0'
@@ -97,18 +97,21 @@ proceed_digit_dx:
 
   lodsb
   sub  ax, '0'
-  mov  bx, ax
-  shl  bx, 1
-  shr  ax, 1
+  add  dx, ax
   shl  dx, 2
+
+  lodsb
+  sub  ax, '0'
+  mov  bx, ax
+  shr  ax, 1
   add  dx, ax
 
   mov  cx, 5
 proceed_digit_ax:
   lodsb
   sub  ax, '0'
-  add  bx, ax
   shl  bx, 3
+  add  bx, ax
   loop proceed_digit_ax
 
   mov  rax, rbx
@@ -136,7 +139,6 @@ neg_number:
 display_dx_ax:
   push rdi
   push rsi
-  push rax
   push rdx
   push rcx
 
@@ -144,6 +146,7 @@ display_dx_ax:
 
   mov  rdi, offset dx_ax_str
 
+  push rax
   mov  cx, 4
 display_dx_ax_proceed_dx_space:
   push cx
@@ -167,8 +170,10 @@ proceed_dx_next:
   stosb
 
   loop display_dx_ax_proceed_dx_space
+  pop  rax
 
   mov  dx, ax
+  push rax
   mov  cx, 4
 display_dx_ax_proceed_ax_space:
   push cx
@@ -205,9 +210,10 @@ proceed_ax_next:
   mov  rdx, 1
   syscall
 
+  pop  rax
+
   pop  rcx
   pop  rdx
-  pop  rax
   pop  rsi
   pop  rdi
   ret
