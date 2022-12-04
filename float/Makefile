@@ -1,7 +1,7 @@
 all: main
 
 main: main.o lib.o
-	gcc main.o lib.o -o main -z noexecstack
+	gcc main.o lib.o -o main -z noexecstack -lm
 
 main.o: main.c
 	gcc -c main.c
