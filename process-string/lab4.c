@@ -13,10 +13,12 @@ int main() {
 
   wchar_t in[4 * N];
   wchar_t out[N];
+  int count = 0;
 
   fgetws(in, N, stdin);
 
-  asm("process_str:                 \n"
+  asm("xor  %[cnt], %[cnt]          \n"
+      "process_str:                 \n"
       "  xor  rax, rax              \n"
       "  lodsd                      \n"
       "  cmp  eax, 0                \n"
@@ -36,7 +38,10 @@ int main() {
       "  rcl  dl, 1                 \n"
       "  jnc  zero_ch               \n"
       "  add  eax, 1                \n"
+      "  jmp  not_zero_ch           \n"
       "zero_ch:                     \n"
+      "  inc  %[cnt]                \n"
+      "not_zero_ch:                 \n"
       "  stosd                      \n"
       "  loop print_bin             \n"
       "  jmp  process_str           \n"
@@ -48,11 +53,12 @@ int main() {
       "end_process:                 \n"
       "  mov  eax, 0                \n"
       "  stosd                      \n"
-      :
+      : [cnt] "+r"(count)
       : [in] "S"(in), [out] "D"(out)
       : "rax", "rcx", "rdx");
 
   wprintf(L"%ls\n", out);
+  wprintf(L"%d\n", count);
 
   return 0;
 }
